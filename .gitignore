@@ -1,0 +1,19 @@
+### Go ###
+# Compiled binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binaries
+*.test
+
+# Coverage / profiling
+*.out
+coverage.*
+profile.*
+
+# Go cache (build, test)
+.gocache/
+.go-build/

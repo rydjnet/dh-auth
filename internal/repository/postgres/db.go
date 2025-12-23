@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -16,7 +15,7 @@ type Database struct {
 func NewPool(ctx context.Context, dsn string) (*Database, error) {
 	config, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("unable to parse dsn: %s", dsn))
+		return nil, fmt.Errorf("postgres: unable to parse dsn: %s", err)
 	}
 	config.MaxConns = 5
 	config.MinConns = 1
@@ -26,19 +25,25 @@ func NewPool(ctx context.Context, dsn string) (*Database, error) {
 
 	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
-		return nil, fmt.Errorf("unable to create connection pool:%w", err)
+		return nil, fmt.Errorf("postgres: unable to create connection pool:%w", err)
 	}
 
 	if err := pool.Ping(ctx); err != nil {
 		pool.Close()
-		return nil, fmt.Errorf("unable to ping database:%w", err)
+		return nil, fmt.Errorf("postgres: unable to ping database: %w", err)
 	}
 	return &Database{Pool: pool}, nil
 }
 
 func (db *Database) Close() {
+	if db == nil || db.Pool == nil {
+		return
+	}
 	db.Pool.Close()
 }
 func (db *Database) Ping(ctx context.Context) error {
+	if db == nil || db.Pool == nil {
+		return fmt.Errorf("postgres: pool is nil")
+	}
 	return db.Pool.Ping(ctx)
 }
